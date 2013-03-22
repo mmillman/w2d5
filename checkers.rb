@@ -26,7 +26,8 @@ class Checkers
       # TODO: Do exception handling here?
       if valid_move?(player_move)
         execute_move(player_move)
-        @turn += 1
+        print_board
+        go_to_next_turn
       end
     end
 
@@ -39,6 +40,7 @@ class Checkers
   end
 
   def execute_move(player_move)
+
     # TODO: Implement this.
   end
 
@@ -63,10 +65,10 @@ class Checkers
   def print_board
     @board.rows.each do |row|
       row.each do |square_contents|
-        print square_contents
-        print "."
-        square_contents ? square_contents.render : ". "
+        print " "
+        print square_contents ? square_contents.render : "."
       end
+      puts
     end
 
     nil
@@ -77,6 +79,10 @@ class Checkers
     coord
   end
 
+  def go_to_next_turn
+    @turn += 1
+  end
+
 end
 
 class Board
@@ -85,6 +91,7 @@ class Board
   def initialize
     @rows = empty_board
     set_up_pieces
+    @rows
   end
 
   def [](coord)
