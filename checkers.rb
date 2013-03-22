@@ -14,14 +14,13 @@ class Checkers
 
   def play
     until game_over?
+      print_board
 
-      puts "Please enter a move"
+      puts "Please enter start, intermediate, and end tiles of a piece."
       player_move = current_player.move_choice(board)
-      puts "You chose #{player_move}"
+      puts "You chose #{player_move} as your move."
 
-      player_move = player_move.map do |coord|
-        internal_coord(coord)
-      end
+      player_move = player_move.map { |coord| internal_coord(coord) }
 
       # TODO: Do exception handling here?
       if valid_move?(player_move)
@@ -40,7 +39,11 @@ class Checkers
   end
 
   def execute_move(player_move)
+    from = player_move.first
+    to = player_move.last
 
+    @board[to] = @board[from]
+    @board[from] = nil
     # TODO: Implement this.
   end
 
@@ -63,6 +66,7 @@ class Checkers
   end
 
   def print_board
+    puts " " + ('a'..'h').to_a.join(' ')
     @board.rows.each do |row|
       row.each do |square_contents|
         print " "
@@ -89,9 +93,7 @@ class Board
   attr_accessor :rows, :winner
 
   def initialize
-    @rows = empty_board
-    set_up_pieces
-    @rows
+    set_new_game_config
   end
 
   def [](coord)
@@ -102,20 +104,19 @@ class Board
     self[coord] = value
   end
 
-  def empty_board
-    Array.new(8) { Array.new(8) }
-  end
-
-  def set_up_pieces
+  def set_new_game_config
+    @rows = []
     @rows[0] = [nil, Piece.new(:r), nil, Piece.new(:r), nil, Piece.new(:r), nil, Piece.new(:r)]
     @rows[1] = [Piece.new(:r), nil, Piece.new(:r), nil, Piece.new(:r), nil, Piece.new(:r), nil]
     @rows[2] = [nil, Piece.new(:r), nil, Piece.new(:r), nil, Piece.new(:r), nil, Piece.new(:r)]
-
+    @rows[3] = [nil] * 8
+    @rows[4] = [nil] * 8
     @rows[5] = [Piece.new(:w), nil, Piece.new(:w), nil, Piece.new(:w), nil, Piece.new(:w), nil]
     @rows[6] = [nil, Piece.new(:w), nil, Piece.new(:w), nil, Piece.new(:w), nil, Piece.new(:w)]
     @rows[7] = [Piece.new(:w), nil, Piece.new(:w), nil, Piece.new(:w), nil, Piece.new(:w), nil]
   end
 
+# TODO: Figure out how to get this working.
 =begin
   def each_row(&prc)
     p @rows
@@ -126,32 +127,44 @@ class Board
 end
 
 class Piece
-  attr_accessor :color
+  attr_accessor :color, :crowned
 
   def initialize(color)
     @color = color
+    @crowned = false
   end
 
   def render
-    @color == :r ? 'R' : 'B'
+    if @color == :r
+      @crowned ? 'R' : 'r'
+    else
+      @crowned ? 'W' : 'w'
+    end
+  end
+
+  def king_me
+    @crowned = true
   end
 end
 
+=begin
 class King < Piece
   # TODO: Implement this.
 end
+=end
 
 class Player
-  attr_accessor :color
+  attr_accessor :color, :num_pieces
 
   def initialize(color)
-    @color = color
+    @color, @num_pieces = color, 12
   end
 end
 
 class HumanPlayer < Player
 
   def move_choice(board)
+    # TODO: Figure out if I need to call chomp before split.
     from_and_to_coord = gets.split
   end
 
