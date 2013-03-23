@@ -8,19 +8,12 @@ class Checkers
     @turn = 0
   end
 
-  def board
-    @board
-  end
-
   def play
     print_board
 
-    until game_over?
-
+    while true
       puts "#{current_player.name}'s move!"
-      puts "Please enter start tile, all intermediate tiles, and end tile."
-      player_move = current_player.move_choice(board)
-      puts "You chose #{player_move} as your move."
+      player_move = get_player_move
 
       internal_move = player_move.map { |coord| board_index(coord) }
 
@@ -28,6 +21,9 @@ class Checkers
       if valid_move?(internal_move)
         execute_move(internal_move)
         print_board
+        if winner || tie?
+          break
+        end
         go_to_next_turn
         # break # for debugging
       end
@@ -36,14 +32,20 @@ class Checkers
     puts winner ? "#{winner} has won!" : "Tie game!"
   end
 
+  def get_player_move
+      puts "Please enter start tile, all intermediate tiles, and end tile."
+      player_move = current_player.move_choice(@board)
+      puts "You chose #{player_move} as your move."
+  end
+
   def valid_move?(player_move)
     # TODO: Call internal_notation to convert to array indices.
     true
   end
 
-  def execute_move(internal_move)
-    from = internal_move.first
-    to = internal_move.last
+  def execute_move(internal_positions)
+    from = internal_positions.first
+    to = internal_positions.last
 
     @board[to] = @board[from]
     @board[from] = nil
@@ -59,6 +61,8 @@ class Checkers
 
   def winner
     # TODO: Implement this.
+    return @players[0].name if @players[1].num_pieces == 0
+    return @players[1].name if @players[0].num_pieces == 0
     nil
   end
 
@@ -122,7 +126,10 @@ class Board
   end
 
   def can_jump_from?(position)
-
+    player_color = self[position].color
+    if player_color == :r
+      # TODO: Implement this.
+    end
   end
 
 # TODO: Figure out how to get this working.
