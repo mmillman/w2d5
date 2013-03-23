@@ -4,7 +4,7 @@ class Checkers
 
   def initialize
     @board = Board.new
-    @players = [HumanPlayer.new(:b), HumanPlayer.new(:w)]
+    @players = [HumanPlayer.new(:b, "P1"), HumanPlayer.new(:w, "P2")]
     @turn = 0
   end
 
@@ -13,24 +13,27 @@ class Checkers
   end
 
   def play
-    until game_over?
-      print_board
+    print_board
 
-      puts "Please enter start, intermediate, and end tiles of a piece."
+    until game_over?
+
+      puts "#{current_player.name}'s move!"
+      puts "Please enter start tile, all intermediate tiles, and end tile."
       player_move = current_player.move_choice(board)
       puts "You chose #{player_move} as your move."
 
-      player_move = player_move.map { |coord| internal_coord(coord) }
+      internal_move = player_move.map { |coord| board_index(coord) }
 
       # TODO: Do exception handling here?
-      if valid_move?(player_move)
-        execute_move(player_move)
+      if valid_move?(internal_move)
+        execute_move(internal_move)
         print_board
         go_to_next_turn
+        # break # for debugging
       end
     end
 
-    puts @board.winner ? "#{@board.winner} has won!" : "Tie game!"
+    puts winner ? "#{winner} has won!" : "Tie game!"
   end
 
   def valid_move?(player_move)
@@ -38,13 +41,12 @@ class Checkers
     true
   end
 
-  def execute_move(player_move)
-    from = player_move.first
-    to = player_move.last
+  def execute_move(internal_move)
+    from = internal_move.first
+    to = internal_move.last
 
     @board[to] = @board[from]
     @board[from] = nil
-    # TODO: Implement this.
   end
 
   def current_player
@@ -66,21 +68,24 @@ class Checkers
   end
 
   def print_board
-    puts " " + ('a'..'h').to_a.join(' ')
-    @board.rows.each do |row|
+    @board.rows.each_with_index do |row, row_num|
+      print " #{8 - row_num}"
       row.each do |square_contents|
         print " "
         print square_contents ? square_contents.render : "."
       end
       puts
     end
+    puts " " * 3 + ('a'..'h').to_a.join(' ')
 
     nil
   end
 
-  def internal_coord(coord)
+  def board_index(letter_num_coord)
     # TODO: Implement parsing of (letter/num) coords like "e3"
-    coord
+    x = letter_num_coord[0].downcase.ord % 97
+    y = 8 - letter_num_coord[1].to_i
+    [y, x]
   end
 
   def go_to_next_turn
@@ -90,7 +95,7 @@ class Checkers
 end
 
 class Board
-  attr_accessor :rows, :winner
+  attr_accessor :rows
 
   def initialize
     set_new_game_config
@@ -101,7 +106,7 @@ class Board
   end
 
   def []=(coord, value)
-    self[coord] = value
+    @rows[coord[0]][coord[1]] = value
   end
 
   def set_new_game_config
@@ -114,6 +119,10 @@ class Board
     @rows[5] = [Piece.new(:w), nil, Piece.new(:w), nil, Piece.new(:w), nil, Piece.new(:w), nil]
     @rows[6] = [nil, Piece.new(:w), nil, Piece.new(:w), nil, Piece.new(:w), nil, Piece.new(:w)]
     @rows[7] = [Piece.new(:w), nil, Piece.new(:w), nil, Piece.new(:w), nil, Piece.new(:w), nil]
+  end
+
+  def can_jump_from?(position)
+
   end
 
 # TODO: Figure out how to get this working.
@@ -154,14 +163,18 @@ end
 =end
 
 class Player
-  attr_accessor :color, :num_pieces
+  attr_accessor :color, :name, :num_pieces
 
-  def initialize(color)
-    @color, @num_pieces = color, 12
+  def initialize(color, name = "Player")
+    @color, @name, @num_pieces = color, name, 12
   end
 end
 
 class HumanPlayer < Player
+
+  def initialize(color, name = "HumanPlayer")
+    super
+  end
 
   def move_choice(board)
     # TODO: Figure out if I need to call chomp before split.
@@ -171,6 +184,10 @@ class HumanPlayer < Player
 end
 
 class ComputerPlayer < Player
+
+  def initialize(color, name = "ComputerPlayer")
+    super
+  end
 
   def move_choice(board)
     # TODO: Implement this.
